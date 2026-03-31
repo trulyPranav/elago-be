@@ -81,7 +81,7 @@ GET /api/properties?types=Flat&priceMin=6000000&priceMax=12000000&sortBy=price_a
       "priceTo": 9000000,
       "pricePerSqft": 4960,
       "area": "1250 sqft",
-      "bedrooms": "2 BHK",
+      "bedrooms": "1-2 BHK",
       "possession": "Dec 2026",
       "phone": "9876543211",
       "email": "sales@sobha.com",
@@ -164,7 +164,7 @@ GET /api/properties/685abc123def456789012345
     "priceTo": 12500000,
     "pricePerSqft": 5862,
     "area": "1450 sqft",
-    "bedrooms": "3 BHK",
+    "bedrooms": "2-3 BHK",
     "possession": "Ready",
     "phone": "9876543210",
     "email": "sales@prestige.in",
@@ -218,7 +218,7 @@ Creates a new property listing.
   "details": {
     "amenities": ["Swimming Pool", "Gym"],
     "area_sqft": 1200,
-    "bedrooms": 2,
+    "bedrooms": [2, 3],
     "description": "A premium project...",
     "possession_date": "Jun 2027"
   },

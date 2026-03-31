@@ -27,7 +27,7 @@ const DetailsSchema = new Schema(
   {
     amenities:       { type: [String], default: [] },
     area_sqft:       { type: Number, required: true, min: 1 },
-    bedrooms:        { type: Number, min: 0 },
+    bedrooms:        { type: [Number], default: [] },
     description:     { type: String, required: true, trim: true },
     possession_date: { type: String, required: true, trim: true },
   },
@@ -168,8 +168,8 @@ PropertySchema.methods.toFrontendShape = function () {
     priceTo:          this.pricing.price_to,
     pricePerSqft:     this.pricing.price_per_sqft,
     area:             `${this.details.area_sqft} sqft`,
-    bedrooms:         this.details.bedrooms != null
-                        ? `${this.details.bedrooms} BHK`
+    bedrooms:         this.details.bedrooms?.length > 0
+                        ? `${Math.min(...this.details.bedrooms)}-${Math.max(...this.details.bedrooms)} BHK`
                         : undefined,
     possession:       this.details.possession_date,
     phone:            this.contact?.phone,

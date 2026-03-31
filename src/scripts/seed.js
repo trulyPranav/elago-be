@@ -33,7 +33,7 @@ const SEED_PROPERTIES = [
     details: {
       amenities:       ['Swimming Pool', 'Gymnasium', 'Clubhouse', "Children's Play Area", 'Jogging Track', 'Security', 'Power Backup'],
       area_sqft:       1450,
-      bedrooms:        3,
+      bedrooms:        [2, 3],
       description:     'Prestige Lakeside Habitat is a premium gated community offering luxury apartments with stunning views of Seegehalli Lake. Spread across 102 acres with world-class amenities.',
       possession_date: 'Ready',
     },
@@ -62,7 +62,7 @@ const SEED_PROPERTIES = [
     details: {
       amenities:       ['Swimming Pool', 'Gymnasium', 'Clubhouse', 'Badminton Court', 'Tennis Court', 'Yoga Deck'],
       area_sqft:       1250,
-      bedrooms:        2,
+      bedrooms:        [1, 2],
       description:     'Sobha Dream Acres is a landmark residential project in East Bengaluru, offering meticulously designed 1 & 2 BHK apartments at accessible price points.',
       possession_date: 'Dec 2026',
     },
@@ -91,7 +91,7 @@ const SEED_PROPERTIES = [
     details: {
       amenities:       ['Private Pool', 'Clubhouse', 'Golf Course', 'Gymnasium', 'Spa', 'Kids Zone', 'Concierge'],
       area_sqft:       3200,
-      bedrooms:        4,
+      bedrooms:        [3, 4],
       description:     'Embassy Springs is an ultra-luxury villa township near Kempegowda International Airport. An integrated township spread over 288 acres.',
       possession_date: 'Mar 2027',
     },
@@ -120,7 +120,7 @@ const SEED_PROPERTIES = [
     details: {
       amenities:       ['Swimming Pool', 'Gymnasium', 'Amphitheatre', 'Basketball Court', 'Jogging Track', 'Mini Theatre'],
       area_sqft:       1380,
-      bedrooms:        3,
+      bedrooms:        [2, 3],
       description:     'Brigade Meadows is a 45-acre gated community on Kanakapura Road offering spacious 2 & 3 BHK apartments surrounded by lush greenery.',
       possession_date: 'Ready',
     },
@@ -149,7 +149,7 @@ const SEED_PROPERTIES = [
     details: {
       amenities:       ['Swimming Pool', 'Gymnasium', 'Tennis Court', 'Clubhouse', 'Jogging Track', 'Kids Play Area'],
       area_sqft:       2800,
-      bedrooms:        4,
+      bedrooms:        [3, 4],
       description:     'Adarsh Palm Retreat is a premium villa community in the heart of the IT corridor with independently designed villas and private gardens.',
       possession_date: 'Ready',
     },
@@ -178,7 +178,7 @@ const SEED_PROPERTIES = [
     details: {
       amenities:       ['Swimming Pool', 'Gymnasium', 'Multipurpose Hall', 'Jogging Track', 'Landscaped Gardens', 'Power Backup'],
       area_sqft:       1180,
-      bedrooms:        2,
+      bedrooms:        [2, 3],
       description:     'Mahindra Windchimes is a thoughtfully designed residential community offering 2 & 3 BHK apartments with modern amenities and quality Mahindra construction.',
       possession_date: 'Jun 2027',
     },
