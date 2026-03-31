@@ -3,6 +3,9 @@
 const { validationResult } = require('express-validator');
 const Property = require('../models/Property');
 const { success, paginated, error } = require('../utils/apiResponse');
+const fs = require('fs');
+const csvParser = require('csv-parser');
+const { validateRow, transformRow } = require('../utils/csvValidator');
 
 // ─── Filter builder ───────────────────────────────────────────────────────────
 
@@ -185,6 +188,112 @@ exports.deleteProperty = async (req, res, next) => {
     return res.json(success({ message: 'Property deactivated successfully' }));
   } catch (err) {
     if (err.name === 'CastError') return res.status(400).json(error('Invalid property ID', 400));
+    next(err);
+  }
+};
+
+// ─── Bulk Upload from CSV ─────────────────────────────────────────────────────
+
+exports.bulkUploadProperties = async (req, res, next) => {
+  try {
+    // Validate file was uploaded
+    if (!req.file) {
+      return res.status(400).json(error('No file uploaded', 400));
+    }
+
+    const filePath = req.file.path;
+    const rows = [];
+    const validationErrors = [];
+    let rowIndex = 0;
+
+    // Parse CSV file
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+          rowIndex++;
+          const errors = validateRow(row, rowIndex);
+          
+          if (errors.length > 0) {
+            validationErrors.push({
+              rowNumber: rowIndex,
+              errors,
+              data: row,
+            });
+          } else {
+            rows.push({ rowNumber: rowIndex, data: row });
+          }
+        })
+        .on('error', reject)
+        .on('end', resolve);
+    });
+
+    // If there are validation errors, reject the entire upload
+    if (validationErrors.length > 0) {
+      fs.unlinkSync(filePath); // Clean up temp file
+      return res.status(422).json(error(
+        `CSV validation failed: ${validationErrors.length} row(s) have errors`,
+        422,
+        { validationErrors }
+      ));
+    }
+
+    if (rows.length === 0) {
+      fs.unlinkSync(filePath); // Clean up temp file
+      return res.status(400).json(error('CSV file is empty', 400));
+    }
+
+    // Transform rows to property documents
+    const properties = rows.map(r => transformRow(r.data));
+
+    // Check for duplicates within the batch (by name + builder combination)
+    const seen = new Set();
+    const uniqueProperties = [];
+    const skippedDuplicates = [];
+
+    for (let i = 0; i < properties.length; i++) {
+      const prop = properties[i];
+      const key = `${prop.name}|${prop.builder}`;
+
+      if (seen.has(key)) {
+        skippedDuplicates.push({
+          rowNumber: rows[i].rowNumber,
+          name: prop.name,
+          builder: prop.builder,
+          reason: 'Duplicate in batch',
+        });
+      } else {
+        seen.add(key);
+        uniqueProperties.push(prop);
+      }
+    }
+
+    // Insert unique properties
+    const result = await Property.insertMany(uniqueProperties, { ordered: false });
+
+    // Clean up temp file
+    fs.unlinkSync(filePath);
+
+    return res.json(success({
+      message: `Successfully imported ${result.length} properties`,
+      imported: result.length,
+      skipped: skippedDuplicates.length,
+      skippedDuplicates: skippedDuplicates.length > 0 ? skippedDuplicates : undefined,
+      properties: result.map(p => ({ id: p._id, name: p.name })),
+    }));
+  } catch (err) {
+    // Clean up temp file if it exists
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {}
+    }
+
+    if (err.code === 11000) {
+      // Duplicate key error
+      return res.status(409).json(error('Duplicate property entries detected', 409));
+    }
+
     next(err);
   }
 };

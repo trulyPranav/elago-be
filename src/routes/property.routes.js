@@ -3,6 +3,7 @@
 const router = require('express').Router();
 const { body, param, query } = require('express-validator');
 const ctrl = require('../controllers/property.controller');
+const upload = require('../middleware/csvUpload');
 
 // ─── Reusable validation rule sets ───────────────────────────────────────────
 
@@ -50,9 +51,11 @@ const createRules = [
 //  POST   /api/properties              → create
 //  PUT    /api/properties/:id          → full update
 //  DELETE /api/properties/:id          → soft-delete (sets is_active = false)
+//  POST   /api/properties/bulk-upload → bulk import from CSV
 
 router.get('/',          listRules, ctrl.getProperties);
 router.get('/builders',             ctrl.getBuilders);     // must be before /:id
+router.post('/bulk-upload', upload.single('file'), ctrl.bulkUploadProperties);
 router.get('/:id',       idRule,    ctrl.getPropertyById);
 router.post('/',         createRules, ctrl.createProperty);
 router.put('/:id',       [...idRule, ...createRules], ctrl.updateProperty);
