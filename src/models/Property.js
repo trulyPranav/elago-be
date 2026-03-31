@@ -169,7 +169,9 @@ PropertySchema.methods.toFrontendShape = function () {
     pricePerSqft:     this.pricing.price_per_sqft,
     area:             `${this.details.area_sqft} sqft`,
     bedrooms:         this.details.bedrooms?.length > 0
-                        ? `${Math.min(...this.details.bedrooms)}-${Math.max(...this.details.bedrooms)} BHK`
+                        ? this.details.bedrooms.length === 1
+                          ? `${this.details.bedrooms[0]} BHK`
+                          : `${Math.min(...this.details.bedrooms)}-${Math.max(...this.details.bedrooms)} BHK`
                         : undefined,
     possession:       this.details.possession_date,
     phone:            this.contact?.phone,

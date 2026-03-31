@@ -68,7 +68,7 @@ const toFrontendShapeLean = (doc) => ({
   priceTo:          doc.pricing.price_to,
   pricePerSqft:     doc.pricing.price_per_sqft,
   area:             `${doc.details.area_sqft} sqft`,
-  bedrooms:         doc.details.bedrooms?.length > 0 ? `${Math.min(...doc.details.bedrooms)}-${Math.max(...doc.details.bedrooms)} BHK` : undefined,
+  bedrooms:         doc.details.bedrooms?.length > 0 ? (doc.details.bedrooms.length === 1 ? `${doc.details.bedrooms[0]} BHK` : `${Math.min(...doc.details.bedrooms)}-${Math.max(...doc.details.bedrooms)} BHK`) : undefined,
   possession:       doc.details.possession_date,
   phone:            doc.contact?.phone,
   email:            doc.contact?.email,
