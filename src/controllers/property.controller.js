@@ -6,6 +6,17 @@ const { success, paginated, error } = require('../utils/apiResponse');
 const fs = require('fs');
 const csvParser = require('csv-parser');
 const { validateRow, transformRow } = require('../utils/csvValidator');
+const { evaluateGrowthIndices } = require('../services/chartAi.service');
+
+const extractYear = (value) => {
+  if (!value) return null;
+  const match = String(value).match(/\b(19|20)\d{2}\b/);
+  return match ? Number(match[0]) : null;
+};
+
+const computeCompoundedValue = ({ baseAmount, index, periods }) => {
+  return Math.round(baseAmount * Math.pow(1 + index, periods));
+};
 
 // ─── Filter builder ───────────────────────────────────────────────────────────
 
@@ -294,6 +305,98 @@ exports.bulkUploadProperties = async (req, res, next) => {
       return res.status(409).json(error('Duplicate property entries detected', 409));
     }
 
+    next(err);
+  }
+};
+
+// ─── Chart Projection ─────────────────────────────────────────────────────────
+
+exports.generatePropertyChart = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json(error('Validation failed', 422, errors.array()));
+    }
+
+    const { id } = req.params;
+    const {
+      currentPropertyValue,
+      currentRentValue,
+      nearbyAmenities = [],
+      startYear,
+      yearsToProject = 25,
+      intervalYears = 5,
+    } = req.body;
+
+    const property = await Property.findOne({ _id: id, 'system.is_active': true }).lean();
+    if (!property) {
+      return res.status(404).json(error('Property not found', 404));
+    }
+
+    const nowYear = new Date().getFullYear();
+    const chartStartYear = Number(startYear) || nowYear;
+
+    const possessionYear = extractYear(property.details?.possession_date);
+    const rentStartYear = possessionYear && possessionYear > chartStartYear
+      ? possessionYear
+      : chartStartYear;
+
+    const { propertyIndex, rentIndex, factors } = evaluateGrowthIndices({
+      coordinates: property.location?.coordinates,
+      builder: property.builder,
+      nearbyAmenities,
+    });
+
+    const timeline = [];
+    const steps = Math.floor(yearsToProject / intervalYears);
+
+    for (let i = 0; i <= steps; i++) {
+      const year = chartStartYear + i * intervalYears;
+      const propertyValue = computeCompoundedValue({
+        baseAmount: Number(currentPropertyValue),
+        index: propertyIndex,
+        periods: i,
+      });
+
+      let rentalValue = 0;
+      if (year >= rentStartYear) {
+        const rentPeriods = Math.floor((year - rentStartYear) / intervalYears);
+        rentalValue = computeCompoundedValue({
+          baseAmount: Number(currentRentValue),
+          index: rentIndex,
+          periods: rentPeriods,
+        });
+      }
+
+      timeline.push({
+        x: year,
+        propertyValueINR: propertyValue,
+        rentValueINR: rentalValue,
+        totalINR: propertyValue + rentalValue,
+      });
+    }
+
+    return res.json(success({
+      propertyId: property._id,
+      propertyName: property.name,
+      locationCoordinates: property.location?.coordinates,
+      possessionDate: property.details?.possession_date,
+      chartMeta: {
+        chartStartYear,
+        rentStartYear,
+        intervalYears,
+        yearsToProject,
+        propertyIndex,
+        rentIndex,
+      },
+      aiEvaluation: {
+        provider: 'heuristic-ai-v1',
+        factors,
+      },
+      coordinates: timeline,
+    }));
+  } catch (err) {
+    if (err.name === 'CastError') return res.status(400).json(error('Invalid property ID', 400));
     next(err);
   }
 };

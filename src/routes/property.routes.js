@@ -43,6 +43,37 @@ const createRules = [
     .isInt({ min: 0 }).withMessage('pricing.price_to must be a non-negative integer'),
 ];
 
+const chartRules = [
+  param('id').isMongoId().withMessage('Invalid property ID'),
+  body('currentPropertyValue')
+    .isFloat({ gt: 0 }).withMessage('currentPropertyValue must be > 0'),
+  body('currentRentValue')
+    .isFloat({ min: 0 }).withMessage('currentRentValue must be >= 0'),
+  body('nearbyAmenities')
+    .optional()
+    .isArray()
+    .withMessage('nearbyAmenities must be an array'),
+  body('nearbyAmenities.*')
+    .optional()
+    .custom((value) => {
+      if (typeof value === 'string') return true;
+      if (value && typeof value === 'object') return true;
+      throw new Error('Each nearby amenity must be a string or object');
+    }),
+  body('startYear')
+    .optional()
+    .isInt({ min: 2000, max: 2100 })
+    .withMessage('startYear must be between 2000 and 2100'),
+  body('yearsToProject')
+    .optional()
+    .isInt({ min: 5, max: 50 })
+    .withMessage('yearsToProject must be between 5 and 50'),
+  body('intervalYears')
+    .optional()
+    .isInt({ min: 1, max: 10 })
+    .withMessage('intervalYears must be between 1 and 10'),
+];
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 //
 //  GET    /api/properties              → list (with filters & pagination)
@@ -52,10 +83,12 @@ const createRules = [
 //  PUT    /api/properties/:id          → full update
 //  DELETE /api/properties/:id          → soft-delete (sets is_active = false)
 //  POST   /api/properties/bulk-upload → bulk import from CSV
+//  POST   /api/properties/:id/chart    → chart coordinates projection
 
 router.get('/',          listRules, ctrl.getProperties);
 router.get('/builders',             ctrl.getBuilders);     // must be before /:id
 router.post('/bulk-upload', upload.single('file'), ctrl.bulkUploadProperties);
+router.post('/:id/chart', chartRules, ctrl.generatePropertyChart);
 router.get('/:id',       idRule,    ctrl.getPropertyById);
 router.post('/',         createRules, ctrl.createProperty);
 router.put('/:id',       [...idRule, ...createRules], ctrl.updateProperty);
