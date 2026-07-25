@@ -8,6 +8,7 @@ const compression = require('compression');
 
 const propertyRoutes  = require('./routes/property.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
+const authRoutes      = require('./routes/auth.routes');
 const { rateLimiter } = require('./middleware/rateLimiter');
 const notFound        = require('./middleware/notFound');
 const errorHandler    = require('./middleware/errorHandler');
@@ -52,6 +53,7 @@ app.get('/health', (_req, res) => {
 });
 
 // ─── API routes ───────────────────────────────────────────────────────────────
+app.use('/api/auth',       authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/analytics',  analyticsRoutes);
 
