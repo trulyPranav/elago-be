@@ -74,6 +74,8 @@ const toFrontendShapeLean = (doc) => ({
   name:             doc.name,
   builder:          doc.builder,
   address:          doc.location.address,
+  locality:         doc.location.area,
+  city:             doc.location.city,
   lat:              doc.location.coordinates.lat,
   lng:              doc.location.coordinates.lng,
   type:             doc.propertyType,
@@ -397,6 +399,18 @@ exports.generatePropertyChart = async (req, res, next) => {
     }));
   } catch (err) {
     if (err.name === 'CastError') return res.status(400).json(error('Invalid property ID', 400));
+    next(err);
+  }
+};
+
+exports.uploadImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json(error('No image file uploaded', 400));
+    }
+    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    return res.json(success({ url: imageUrl }));
+  } catch (err) {
     next(err);
   }
 };

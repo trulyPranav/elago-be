@@ -5,6 +5,7 @@ const helmet      = require('helmet');
 const cors        = require('cors');
 const morgan      = require('morgan');
 const compression = require('compression');
+const path        = require('path');
 
 const propertyRoutes  = require('./routes/property.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
@@ -37,6 +38,7 @@ app.use(
 // ─── Body parsing ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // ─── Compression & logging ────────────────────────────────────────────────────
 app.use(compression());

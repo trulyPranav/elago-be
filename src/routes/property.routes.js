@@ -4,6 +4,7 @@ const router = require('express').Router();
 const { body, param, query } = require('express-validator');
 const ctrl = require('../controllers/property.controller');
 const upload = require('../middleware/csvUpload');
+const imageUpload = require('../middleware/imageUpload');
 const { authenticateToken } = require('../middleware/auth');
 
 // ─── Reusable validation rule sets ───────────────────────────────────────────
@@ -89,6 +90,7 @@ const chartRules = [
 router.get('/',          listRules, ctrl.getProperties);
 router.get('/builders',             ctrl.getBuilders);     // must be before /:id
 router.post('/bulk-upload', authenticateToken, upload.single('file'), ctrl.bulkUploadProperties);
+router.post('/upload-image', authenticateToken, imageUpload.single('image'), ctrl.uploadImage);
 router.post('/:id/chart',   chartRules, ctrl.generatePropertyChart);
 router.get('/:id',         idRule,    ctrl.getPropertyById);
 router.post('/',           authenticateToken, createRules, ctrl.createProperty);

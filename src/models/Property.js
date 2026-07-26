@@ -160,6 +160,8 @@ PropertySchema.methods.toFrontendShape = function () {
     name:             this.name,
     builder:          this.builder,
     address:          this.location.address,
+    locality:         this.location.area,
+    city:             this.location.city,
     lat:              this.location.coordinates.lat,
     lng:              this.location.coordinates.lng,
     type:             this.propertyType,
